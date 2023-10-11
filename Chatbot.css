@@ -1,0 +1,51 @@
+body {
+    background: linear-gradient(to right, #99cdef, #1f71c3);
+}
+button:hover {
+    background-color: lightsalmon;
+    cursor: pointer;
+    box-shadow: 2.5px 2.5px 5px #1d130480;
+}
+#chatbox {
+    background: linear-gradient(90deg, #f4f4f5, #bdbddc);
+    border: 5px solid #000000;
+    border-radius: 40px;
+    overflow: auto;
+    width: 700px;
+    height: 300px;
+    margin: 0 auto;
+    padding: 10px;
+    font-family: 'Indie Flower', cursive;
+    font-size: 24px;
+}
+.submit {
+    width: 700px;
+    height: 100px;
+    margin: auto auto;
+    padding: 5px;
+}
+#userInput {
+    width: 500px;
+    height: 50px;
+    margin-left: 5px;
+    border-radius: 20px;
+    font-family: 'Indie Flower', cursive;
+    font-size: 24px;
+}
+#userInput:focus, #userInput:hover {
+    box-shadow: 3px 3px 5px #1d130480;
+    outline: none;
+}
+#userInput::placeholder {
+    font-family: 'Indie Flower', cursive;
+    font-size: 24px;
+}
+#sendButton {
+    font-family: 'Indie Flower', cursive;
+    font-size: 24px;
+    width: 100px;
+    height: 50px;
+    margin-left: 5px;
+    background-color: lightsalmon;
+    border-radius: 20px;
+}

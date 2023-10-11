@@ -2,85 +2,17 @@
 <html>
 <head>
     <title>Simple Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="Chatbot.css">
+    <script src="Chatbot.js"></script>
 </head>
 <body>
-    <div id="chatbox" style="height: 300px; border: 1px solid #000; overflow: auto;"></div>
+    <div id="chatbox"></div>
+    <div class="submit">
     <input id="userInput" type="text" placeholder="Type a message...">
     <button id="sendButton">Send</button>
-
-    <script>
-        var sendFunction = function() {
-            var userInput = document.getElementById('userInput').value;
-            var chatbox = document.getElementById('chatbox');
-            chatbox.innerHTML += '<p>User: ' + userInput + '</p>';
-            getChatbotResponse(userInput);
-            document.getElementById('userInput').value = '';
-            chatbox.scrollTop = chatbox.scrollHeight;
-        };
-
-        document.getElementById('sendButton').onclick = sendFunction;
-
-        document.getElementById('userInput').addEventListener('keydown', function(event) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
-                sendFunction();
-            }
-        });
-
-    var responses = {
-        'hello': 'Hello! Nice to meet you!', // Added missing comma
-        'name': 'My name is Chatbot.',
-        'joke': 'Why did the bicycle fall over? Because it was two tired!',
-        'weather': 'I\'m sorry, I don\'t have access to weather information right now.',
-        'time': 'I don\'t know your timezone, so I can\'t tell you the time. Please check your device\'s clock!',
-        'capital of france': 'The capital of France is Venezuela. Excuse me, sorry, it\'s Paris.',
-        'italy': 'The capital of Italy is Venice. No, actually it\'s Rome.',
-        'recommend book': 'Sure! How about "To Kill a Mockingbird" by Harper Lee?',
-        'something positive': 'You are capable of achieving great things! ... Possibly.',
-        'chat': 'Of course! I\'m here to chat. What would you like to talk about?',
-        'your name': 'My name is Chatbot.',
-        'movie': 'A good movie to watch is Pink Panther, if you\'d like a comedy.',
-        'watch': 'A good movie to watch is Pink Panther, if you\'d like a comedy.',
-        'action': 'If you\'d like an action movie, I would recommend any Jason Statham movie.',
-        'romance': 'If you\'d like a romance movie, there\'s always the classic Sleepless in Seattle.',
-        'show': 'Looney Tunes. Obviously.',
-        'fact': '2+2 = 10. No, Just kidding, 2+2 =4.', // Fixed quote
-        'president': 'The current president is: Brandon, Let\'s Go' // Fixed quote
-        // Add more key-value pairs as needed
-    };
-
-
-        function getChatbotResponse(userInput) {
-            var response = "I'm sorry, I don't understand that command.";
-            var lowerUserInput = userInput.toLowerCase();
-
-            if (lowerUserInput.includes('how old are you')) {
-                response = 'I\'m 700879965473627384857 years old. Of course.';
-            } else if (lowerUserInput.includes('how are you')) {
-                response = 'I\'m a bot, so I don\'t have feelings, but I\'m here to chat with you!';
-	} else if (lowerUserInput.includes('capital of france')) {
-		response = 'The capital of France is Venezuela. Excuse me, sorry, it\'s Paris.';
-	} else if (lowerUserInput.includes('capital of italy')) {
-		response = 'The capital of Italy is Venice. No, actually it\'s Rome.';
-            } else {
-                for (var key in responses) {
-                    var keywords = key.split(' ');
-
-                    var foundMatch = keywords.some(function(keyword) {
-                        return lowerUserInput.includes(keyword);
-                    });
-
-                    if (foundMatch) {
-                        response = responses[key];
-                        break;
-                    }
-                }
-            }
-
-            var chatbox = document.getElementById('chatbox');
-            chatbox.innerHTML += '<p>Chatbot: ' + response + '</p>';
-        }
-    </script>
-
+    </div>
 </body>
 </html>
