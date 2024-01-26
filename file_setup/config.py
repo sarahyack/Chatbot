@@ -1,14 +1,10 @@
-grade_6_english = "C:\\Users\\Sarah\\Documents\\School\\Ron Paul Curriculum\\Grade 6\\Grade 6 English\\Essay posts"
-grade_6_history = "C:\\Users\\Sarah\\Documents\\School\\Ron Paul Curriculum\\Grade 6\\Grade 6 History\\Review posts"
-grade_7_english = "C:\\Users\\Sarah\\Documents\\School\\Ron Paul Curriculum\\Grade 7\\Grade 7 English\\Essays for 7 Grade Literature"
-grade_7_history = "C:\\Users\\Sarah\\Documents\\School\\Ron Paul Curriculum\\Grade 7\\Grade 7 History\\Essays for 7th Grade History"
-# Multi-Line comment out the variables below
-# grade_8_essays =
-# grade_9_essays =
-# grade_10_essays =
-# grade_11_essays =
-# grade_12_essays =
-
-paths = [grade_6_english, grade_6_history, grade_7_english, grade_7_history]
-
-target_dir = "C:\\Users\\Sarah\\AI-Creation\\Machine Learning\\Datasets\\Essays\\"
+# file_setup\config.py
+dataset_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Datasets\\Essays"
+root_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot"
+data_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\data"
+database_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\data\\essays.db"
+test_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\tests"
+test_db_path = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\tests\\test.db"
+src_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\src"
+web_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\src\\web"
+model_dir = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\src\\model"
