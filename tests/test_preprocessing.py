@@ -4,25 +4,25 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 from file_setup.init_processing import *
-from file_setup.config import test_db_path, data_dir, test_dir
+from file_setup.config import test_db_path, test_dir, dataset_dir
 
 class TestPreprocessing(unittest.TestCase):
     
-    def test_setup_lemmatizer(self):
-        lemmatizer, stop_words, _ = setup_lemmatizer(data_dir)
+    def test_setup_lemmatizer(self) -> None:
+        lemmatizer, stop_words = setup_lemmatizer()
         self.assertIsInstance(lemmatizer, WordNetLemmatizer)
         self.assertIsInstance(stop_words, set)
     
-    def test_process_content(self):
+    def test_process_content(self) -> None:
         
-        lemmatizer, stop_words, _ = setup_lemmatizer(data_dir)
+        lemmatizer, stop_words = setup_lemmatizer()
         content = "This is a test. Testing, 1, 2, 3!"
         expected_content = "test testing"
         
         processed_content = process_content(content, lemmatizer, stop_words)
         self.assertEqual(processed_content, expected_content)
     
-    def test_create_database(self):
+    def test_create_database(self) -> None:
         test_db_path = os.path.join(test_dir, 'test.db')
         
         conn, cursor = create_database(test_db_path)
@@ -34,7 +34,7 @@ class TestPreprocessing(unittest.TestCase):
         
         conn.close()
         
-    def test_open_database(self):
+    def test_open_database(self) -> None:
         test_db_path = os.path.join(test_dir, 'test.db')
         
         conn, cursor = open_database(test_db_path)
@@ -46,7 +46,7 @@ class TestPreprocessing(unittest.TestCase):
         
         conn.close()
     
-    def test_close_database(self):
+    def test_close_database(self) -> None:
         test_db_path = os.path.join(test_dir, 'test.db')
         
         conn, cursor = open_database(test_db_path)
@@ -68,7 +68,7 @@ class TestPreprocessing(unittest.TestCase):
     @patch('file_setup.init_processing.time.gmtime')
     @patch('file_setup.init_processing.os.path.getmtime')
     @patch('file_setup.init_processing.process_content')
-    def test_process_files(self, mock_process_content, mock_getmtime, mock_gmtime, mock_connect, mock_listdir, mock_docx, mock_load):
+    def test_process_files(self, mock_process_content: MagicMock, mock_getmtime: MagicMock, mock_gmtime: MagicMock, mock_connect: MagicMock, mock_listdir: MagicMock, mock_docx: MagicMock, mock_load: MagicMock) -> None:
         # Arrange
         mock_getmtime.return_value = 1234567890
         mock_gmtime.return_value = time.struct_time((2020, 1, 1, 0, 0, 0, 0, 0, 0))
@@ -93,14 +93,14 @@ class TestPreprocessing(unittest.TestCase):
         self.assertTrue(mock_process_content.called)
         self.assertTrue(mock_cursor.execute.called)
         mock_connect.return_value.commit.assert_called()
-        
+    
     @patch('file_setup.init_processing.process_files')
     @patch('file_setup.init_processing.setup_lemmatizer')
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.create_database')
     @patch('file_setup.init_processing.os.path.exists')
     @patch('file_setup.init_processing.close_database')
-    def test_main(self, mock_close_db, mock_exists, mock_create_db, mock_open_db, mock_setup_lemmatizer, mock_process_files):
+    def test_main(self, mock_close_db: MagicMock, mock_exists: MagicMock, mock_create_db: MagicMock, mock_open_db: MagicMock, mock_setup_lemmatizer: MagicMock, mock_process_files: MagicMock) -> None:
         # Arrange
         mock_exists.return_value = False
         mock_conn = MagicMock()
@@ -108,15 +108,14 @@ class TestPreprocessing(unittest.TestCase):
         mock_create_db.return_value = (mock_conn, mock_cursor)
         mock_lemmatizer = MagicMock()
         mock_stop_words = set()
-        mock_essay_dir = 'dummy_dir'
-        mock_setup_lemmatizer.return_value = (mock_lemmatizer, mock_stop_words, mock_essay_dir)
+        mock_setup_lemmatizer.return_value = (mock_lemmatizer, mock_stop_words)
 
         # Act
         main()
 
         # Assert
         mock_create_db.assert_called()
-        mock_process_files.assert_called_with(mock_essay_dir, mock_lemmatizer, mock_stop_words, mock_conn, mock_cursor)  # Check if process_files was called with correct arguments
+        mock_process_files.assert_called_with(dataset_dir, mock_lemmatizer, mock_stop_words, mock_conn, mock_cursor, print_output = True)
         mock_close_db.assert_called_with(mock_conn)
         
         mock_exists.return_value = True
@@ -126,7 +125,7 @@ class TestPreprocessing(unittest.TestCase):
         main()
         
         mock_open_db.assert_called()
-        mock_process_files.assert_called_with(mock_essay_dir, mock_lemmatizer, mock_stop_words, mock_conn, mock_cursor)
+        mock_process_files.assert_called_with(dataset_dir, mock_lemmatizer, mock_stop_words, mock_conn, mock_cursor, print_output = True)
         mock_close_db.assert_called_with(mock_conn)
 
 
