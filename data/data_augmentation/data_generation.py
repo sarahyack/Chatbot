@@ -7,9 +7,6 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from collections import defaultdict
 from heapq import nlargest
 
-import file_setup.config as config
-from data.data_augmentation.data_query import *
-
 def summarize(text: str, summary_length: int) -> str:
     """
     Summarize text using NLTK and return the summary as a string.
@@ -55,5 +52,7 @@ def extract_entities(text):
 
 def main():
     # TODO: Add code here
-
+    
+    
+    
     pass

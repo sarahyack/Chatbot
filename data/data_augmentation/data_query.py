@@ -1,24 +1,9 @@
 # data/data_augmentation/data_query.py
 
+from typing import Any
+import pandas as pd
 from file_setup import config
 from file_setup.init_processing import open_database, close_database
-import pandas as pd
-
-def create_dataframe(table_name: str) -> pd.DataFrame:
-    """
-    Create a dataframe from the specified table and return it.
-
-    Parameters:
-        - table_name (str): The name of the table from which to create the dataframe.
-
-    Returns:
-        - pd.DataFrame: The dataframe created from the specified table.
-    """
-    conn, cursor = open_database(config.database_path)
-    cursor.execute(f"SELECT * FROM {table_name}")
-    df = pd.DataFrame(cursor.fetchall(), columns=[column[0] for column in cursor.description])
-    close_database(conn)
-    return df
 
 def add_database_column(db_path: str, table_name: str, column_name: str) -> None:
     '''
@@ -86,6 +71,23 @@ def rename_database_column(db_path: str, table_name: str, old_column_name: str, 
     cursor.execute(f"ALTER TABLE {table_name} RENAME COLUMN {old_column_name} TO {new_column_name}")
     close_database(conn)
 
+def insert_into_database(db_path: str, table_name: str, column_name: str, data: Any) -> None:
+    '''
+    Insert data into the specified table in the database.
+    
+    Parameters:
+        - db_path (str): The path to the database file.
+        - table_name (str): The name of the table to insert data into.
+        - column_name (str): The name of the column to insert data into.
+        - data (Any): The data to insert.
+    
+    Returns:
+        - None
+    '''
+    conn, cursor = open_database(db_path)
+    cursor.execute(f"INSERT INTO {table_name} ({column_name}) VALUES (?)", (data))
+    close_database(conn)
+
 def retrieve_table_data(db_path: str, table_name: str) -> pd.DataFrame:
     '''
     Retrieves the data from the specified table in the database.
@@ -98,6 +100,22 @@ def retrieve_table_data(db_path: str, table_name: str) -> pd.DataFrame:
         - pd.DataFrame: The retrieved data as a pandas DataFrame.
     '''
     conn, cursor = open_database(db_path)
+    cursor.execute(f"SELECT * FROM {table_name}")
+    df = pd.DataFrame(cursor.fetchall(), columns=[column[0] for column in cursor.description])
+    close_database(conn)
+    return df
+
+def create_dataframe(table_name: str) -> pd.DataFrame:
+    """
+    Create a dataframe from the specified table and return it.
+
+    Parameters:
+        - table_name (str): The name of the table from which to create the dataframe.
+
+    Returns:
+        - pd.DataFrame: The dataframe created from the specified table.
+    """
+    conn, cursor = open_database(config.database_path)
     cursor.execute(f"SELECT * FROM {table_name}")
     df = pd.DataFrame(cursor.fetchall(), columns=[column[0] for column in cursor.description])
     close_database(conn)

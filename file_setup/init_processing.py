@@ -3,6 +3,7 @@
 import os
 import time
 import sqlite3
+from typing import Any
 import docx
 import nltk
 from nltk.corpus import stopwords
@@ -92,58 +93,86 @@ def process_content(content: str, lemmatizer: WordNetLemmatizer, stop_words: set
         processed_content = " ".join(words)
         return processed_content
 
+def return_title_and_year(file_name: str, file_path: str) -> tuple[str, int]:
+    """
+    Returns the title and year of the given file.
 
-def process_files(essay_dir: str, lemmatizer: WordNetLemmatizer, stop_words: set[str], conn: sqlite3.Connection, cursor: sqlite3.Cursor, print_output: bool=False) -> None:
+    Parameters:
+        - file_name (str): The name of the file.
+        - file_path (str): The path to the file.
+
+    Returns:
+        - tuple[str, int]: A tuple containing the title of the file and the year of last modification.
+    """
+    title: str = os.path.splitext(file_name)[0].replace('_', ' ')
+    last_modified_time: float = os.path.getmtime(file_path)
+    year: int = time.gmtime(last_modified_time).tm_year
+    
+    return title, year
+
+def read_file_content(essay_dir: str) -> list[tuple[str, int, str]]:
+    """
+    Reads the content of all .odt and .docx files in the specified directory.
+
+    Parameters:
+        - essay_dir (str): The directory containing the essays.
+
+    Returns:
+        - list[tuple[str, int, str]]: A list of tuples, each containing the title, year, and content of the file.
+    """
+    file_contents:list[tuple[str, int, str]] = []
+    
+    for filename in os.listdir(essay_dir):
+        if filename.endswith('.odt') or filename.endswith('.docx'):
+            filepath = os.path.join(essay_dir, filename)
+            
+            title, year = return_title_and_year(filename, filepath)
+            
+            content = ""
+            if filename.endswith('.odt'):
+                odt_file = load(filepath)
+                all_text = odt_file.getElementsByType(text.P)
+                content = " ".join([teletype.extractText(text) for text in all_text])
+            elif filename.endswith('.docx'):
+                doc = docx.Document(filepath)
+                content = " ".join([para.text for para in doc.paragraphs])
+            
+            file_contents.append((title, year, content))
+
+    return file_contents
+
+def insert_into_database(data: list[tuple[str, int, str]], conn: sqlite3.Connection, cursor: sqlite3.Cursor, table_name: str, print_output: bool=False) -> None:
     '''
-    Processes the files in the 'Test' directory and inserts them into the database.
+    Insert data into the specified table in the database.
     
     Parameters:
-        - essay_dir: the directory path for the data
-        - lemmatizer: the initialized WordNetLemmatizer
-        - stop_words: a set of English stop words
-        - conn: the database connection
-        - cursor: the database cursor
+        - data (list[tuple[str, int, str]]): A list of tuples containing the title, year, and processed content.
+        - conn: The database connection object.
+        - cursor: The database cursor object.
+        - table_name (str): The name of the table to insert data into.
+        - print_output (bool): Whether to print the processed content. Default is False.
     
     Returns:
         - None
     '''
     try:
-        for filename in os.listdir(essay_dir):
-            if filename.endswith('.odt') or filename.endswith('.docx'):
-                filepath = os.path.join(essay_dir, filename)
-                
-                title = os.path.splitext(filename)[0].replace('_', ' ')
-
-                last_modified_time = os.path.getmtime(filepath)
-                year = time.gmtime(last_modified_time).tm_year
-                
-                content = ""
-                
-                if filename.endswith('.odt'):
-                    odt_file = load(filepath)
-                    all_text = odt_file.getElementsByType(text.P)
-                    content = " ".join([teletype.extractText(text) for text in all_text])
-                elif filename.endswith('.docx'):
-                    doc = docx.Document(filepath)
-                    content = " ".join([para.text for para in doc.paragraphs])
-                    
-                processed_content = process_content(content, lemmatizer, stop_words)
-                
-                if print_output:
-                    print(f"Title: {title}")
-                    print(f"Year: {year}")
-                    print(f"Processed Content: {processed_content[:100]}...")  # Print first 100 characters
-                    print("-----------------------------------")
-                
-                try:
-                    cursor.execute('INSERT INTO essays (title, content, year) VALUES (?, ?, ?)', (title, processed_content, year))
-                except sqlite3.Error as e:
-                    print(f"An error occurred while inserting data: {e}")
-                
-                conn.commit()
+        for title, year, processed_content in data:
+            if print_output:
+                print(f"Title: {title}")
+                print(f"Year: {year}")
+                print(f"Processed Content: {processed_content[:100]}...")  # Print first 100 characters
+                print("-----------------------------------")
+            
+            try:
+                cursor.execute(f'INSERT INTO {table_name} (title, year, content) VALUES (?, ?, ?)', (title, year, processed_content))
+            except sqlite3.Error as e:
+                print(f"An error occurred while inserting data: {e}")
+            
+            conn.commit()
     except Exception as e:
         print(f"An error occurred: {e}")
-        
+
+
 def close_database(conn: sqlite3.Connection) -> None:
     """
     Closes the database connection.
@@ -180,9 +209,12 @@ def main():
     else:
         print("Database directory found. Using existing database...")
         conn, cursor = open_database(database_path)
+    
     lemmatizer, stop_words = setup_lemmatizer()
     
-    process_files(dataset_dir, lemmatizer, stop_words, conn, cursor, print_output=True)
+    file_contents = read_file_content(dataset_dir)
+    processed_data = [(title, year, process_content(content, lemmatizer, stop_words)) for title, year, content in file_contents]
+    insert_into_database(processed_data, conn, cursor, 'essays', print_output=True)
     
     close_database(conn)
     print("Data initialization complete.")

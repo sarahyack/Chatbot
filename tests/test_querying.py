@@ -9,6 +9,7 @@ from file_setup.config import test_db_path
 
 
 class TestDataQuery(unittest.TestCase):
+    
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
     @patch('file_setup.init_processing.sqlite3')
@@ -42,23 +43,6 @@ class TestDataQuery(unittest.TestCase):
 
         # Assert
         mock_cursor.execute.assert_called_with("ALTER TABLE dummy_table DROP COLUMN dummy_column")
-    
-    @patch('file_setup.init_processing.open_database')
-    @patch('file_setup.init_processing.close_database')
-    @patch('file_setup.init_processing.sqlite3')
-    def test_create_dataframe(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
-        # Arrange
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_sqlite3.connect.return_value = mock_conn
-        mock_conn.cursor.return_value = mock_cursor
-        mock_open_db.return_value = (mock_conn, mock_cursor)
-
-        # Test function
-        data_query.create_dataframe('dummy_table')
-
-        # Assert
-        mock_cursor.execute.assert_called_with("SELECT * FROM dummy_table")
     
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
@@ -97,6 +81,19 @@ class TestDataQuery(unittest.TestCase):
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
     @patch('file_setup.init_processing.sqlite3')
+    def test_insert_into_database(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        
+        data_query.insert_into_database('dummy_path', 'dummy_table', 'dummy_column', 'dummy_data')
+        
+        mock_cursor.execute.assert_called_with("INSERT INTO dummy_table (dummy_column) VALUES (?)", ('dummy_data'))
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
     def test_retrieve_table_data(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
         # Arrange
         mock_conn = MagicMock()
@@ -114,6 +111,23 @@ class TestDataQuery(unittest.TestCase):
         # Assert
         self.assertEqual(len(df), 2)
         self.assertEqual(df.columns.tolist(), ['column1'])
+        mock_cursor.execute.assert_called_with("SELECT * FROM dummy_table")
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
+    def test_create_dataframe(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
+        # Arrange
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+
+        # Test function
+        data_query.create_dataframe('dummy_table')
+
+        # Assert
         mock_cursor.execute.assert_called_with("SELECT * FROM dummy_table")
 
 if __name__ == '__main__':
