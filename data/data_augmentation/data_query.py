@@ -1,4 +1,17 @@
 # data/data_augmentation/data_query.py
+'''
+This file contains functions for querying and manipulating data in a SQLite database.
+
+Functions include:
+    
+    - add_database_column(db_path: str, table_name: str, column_name: str) - Add a new column to the specified table in the database.
+    - drop_database_column(db_path: str, table_name: str, column_name: str) - Drops the specified column from the given database table.
+    - rename_database_column(db_path: str, table_name: str, old_column_name: str, new_column_name: str) - Renames the specified column in the specified table in the database.
+    - update_database_column(db_path: str, table_name: str, column_name: str, value: str) - Updates the value of the specified column in the specified table in the database.
+    - insert_into_database(db_path: str, table_name: str, column_name: str, data: Any) - Insert data into the specified table in the database.
+    - retrieve_table_data(db_path: str, table_name: str) - Retrieves the data from the specified table in the database.
+    - create_dataframe(table_name: str) - Create a dataframe from the specified table and return it.
+'''
 
 from typing import Any
 import pandas as pd

@@ -1,4 +1,19 @@
 # file_setup\init_processing.py
+'''
+This file contains functions for processing files.
+
+Functions include:
+    
+    - create_database(db_path: str) - Creates a database connection and a cursor to the specified database path.
+    - open_database(db_path: str) - Opens a database connection and a cursor to the specified database path.
+    - setup_lemmatizer() - Sets up the lemmatizer and stop words.
+    - process_content(content: str, lemmatizer: Any, stop_words: set[str]) - Processes the specified content using the specified lemmatizer and stop words.
+    - return_title_and_year(filename: str, filepath: str) - Returns the title and year of the specified file.
+    - read_file_content(essay_dir: str) - Reads the content of all .odt and .docx files in the specified directory.
+    - insert_into_database(db_path: str, table_name: str, column_name: str, data: Any) - Inserts data into the specified table in the database.
+    - close_database(conn: sqlite3.Connection) - Closes a database connection.
+    - main() - Main function to initialize the processing of the data.
+'''
 
 import os
 import time

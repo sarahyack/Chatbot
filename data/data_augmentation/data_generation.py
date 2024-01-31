@@ -1,4 +1,12 @@
 # data/data_augmentation/data_generation.py
+'''
+This module contains functions for data generation.
+
+Functions:
+    
+    - summarize(text: str, summary_length: int) - Summarize text using NLTK and return the summary as a string.
+    - extract_entities(text: str) - Extract entities from text using spacy
+'''
 
 import nltk
 import spacy
@@ -42,7 +50,7 @@ def summarize(text: str, summary_length: int) -> str:
     summary_sentences = nlargest(summary_length, sentence_scores, key=lambda sent: sentence_scores[sent])
     return ' '.join(summary_sentences)
 
-def extract_entities(text):
+def extract_entities(text: str) -> list[tuple[str, str]]:
     nlp = spacy.load('en_core_web_sm')
 
     doc = nlp(text)
