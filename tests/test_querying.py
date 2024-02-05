@@ -13,6 +13,59 @@ class TestDataQuery(unittest.TestCase):
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
     @patch('file_setup.init_processing.sqlite3')
+    def test_column_exists(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+        
+        mock_cursor.fetchall.return_value = [
+            (0, 'id', 'int', 0, None, 0),
+            (1, 'title', 'text', 0, None, 0),
+            (2, 'full_text', 'text', 0, None, 0)
+        ]
+        
+        mock_cursor.execute.return_value = None
+        
+        result = data_query.column_exists('dummy_path', 'dummy_table', 'full_text')
+        
+        self.assertTrue(result)
+        
+        mock_cursor.fetchall.return_value = [
+            (0, 'id', 'int', 0, None, 0),
+            (1, 'title', 'text', 0, None, 0)
+        ]
+        
+        result = data_query.column_exists('dummy_path', 'dummy_table', 'full_text')
+        
+        self.assertFalse(result)
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
+    def test_is_column_empty_or_null(self, mock_sqlite3, mock_close_db, mock_open_db):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+
+        # Test case where the column has empty or null values
+        mock_cursor.fetchone.return_value = (1,)  # Indicates 1 row with empty or null value
+        result = data_query.is_column_empty_or_null('dummy_path', 'dummy_table', 'dummy_column')
+        self.assertTrue(result)
+        mock_cursor.execute.assert_called_with("SELECT COUNT(*) FROM dummy_table WHERE dummy_column IS NULL OR dummy_column = ''")
+
+        # Test case where the column does not have empty or null values
+        mock_cursor.fetchone.return_value = (0,)  # Indicates no rows with empty or null value
+        result = data_query.is_column_empty_or_null('dummy_path', 'dummy_table', 'dummy_column')
+        self.assertFalse(result)
+        mock_cursor.execute.assert_called_with("SELECT COUNT(*) FROM dummy_table WHERE dummy_column IS NULL OR dummy_column = ''")
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
     def test_add_database_column(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
         # Arrange
         mock_conn = MagicMock()
@@ -64,6 +117,42 @@ class TestDataQuery(unittest.TestCase):
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
     @patch('file_setup.init_processing.sqlite3')
+    def test_update_database_cell(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+        dummy_id = 1
+        
+        data_query.update_database_cell('dummy_path', 'dummy_table', dummy_id, 'dummy_column', 'dummy_value')
+        
+        mock_cursor.execute.assert_called_with("UPDATE dummy_table SET dummy_column = 'dummy_value' WHERE id = 1")
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
+    def test_retrieve_id_from_database(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+        dummy_value = 'dummy_value'
+        
+        dummy_value = 'dummy_value'
+        mock_cursor.fetchone.return_value = (42,)
+        dummy_id = data_query.retrieve_id_from_database('dummy_path', 'dummy_table', 'dummy_column', dummy_value)
+        mock_cursor.execute.assert_called_with("SELECT id FROM dummy_table WHERE dummy_column = ?", (dummy_value,))
+        self.assertEqual(dummy_id, 42)
+
+        mock_cursor.fetchone.return_value = None
+        dummy_id = data_query.retrieve_id_from_database('dummy_path', 'dummy_table', 'dummy_column', dummy_value)
+        self.assertIsNone(dummy_id)
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
     def test_rename_database_column(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
         # Arrange
         mock_conn = MagicMock()
@@ -86,10 +175,12 @@ class TestDataQuery(unittest.TestCase):
         mock_cursor = MagicMock()
         mock_sqlite3.connect.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
         
-        data_query.insert_into_database('dummy_path', 'dummy_table', 'dummy_column', 'dummy_data')
+        dummy_columns = ['dummy_column']
+        data_query.insert_into_database('dummy_path', 'dummy_table', dummy_columns, 'dummy_data')
         
-        mock_cursor.execute.assert_called_with("INSERT INTO dummy_table (dummy_column) VALUES (?)", ('dummy_data'))
+        mock_cursor.executemany.assert_called_with("INSERT INTO dummy_table (dummy_column) VALUES (?)", ('dummy_data'))
     
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
