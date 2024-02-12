@@ -1,0 +1,42 @@
+[
+  {
+    "Name": "docx",
+    "conda install": "conda install conda-forge::python-docx",
+    "install name": "python-docx"
+  },
+  {
+    "Name": "odf",
+    "conda install": "conda install conda-forge::odfpy",
+    "install name": "odfpy"
+  },
+  {
+    "Name": "nltk",
+    "conda install": "conda install anaconda::nltk",
+    "install name": "nltk"
+  },
+  {
+    "Name": "pandas",
+    "conda install": "conda install anaconda::pandas",
+    "install name": "pandas"
+  },
+  {
+    "Name": "sqlite",
+    "conda install": "conda install anaconda::sqlite",
+    "install name": "sqlite"
+  },
+  {
+    "Name": "typing",
+    "conda install": "conda install anaconda::typing",
+    "install name": "typing"
+  },
+  {
+    "Name": "spacy",
+    "conda install": "conda install conda-forge::spacy",
+    "install name": "spacy"
+  },
+  {
+    "Name": "collections",
+    "conda install": "conda install lightsource2-tag::collections",
+    "install name": "collections"
+  }
+]

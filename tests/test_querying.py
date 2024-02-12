@@ -66,6 +66,32 @@ class TestDataQuery(unittest.TestCase):
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
     @patch('file_setup.init_processing.sqlite3')
+    def test_find_all_duplicates(self, mock_sqlite3, mock_close_db, mock_open_db):
+        # Arrange
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [
+            ('duplicate_value_1', 2, '2,5'),
+            ('duplicate_value_2', 3, '3,6,8')
+        ]
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+        
+        # Act
+        duplicates = data_query.find_all_duplicates('dummy_path', 'dummy_table', 'dummy_column')
+        
+        # Assert
+        expected_result = {
+            'duplicate_value_1': [2, 5],
+            'duplicate_value_2': [3, 6, 8]
+        }
+        self.assertEqual(duplicates, expected_result)
+        mock_cursor.execute.assert_called_with("SELECT dummy_column, COUNT(*), GROUP_CONCAT(id) FROM dummy_table GROUP BY dummy_column HAVING COUNT(*) > 1")
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
     def test_add_database_column(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
         # Arrange
         mock_conn = MagicMock()
@@ -100,6 +126,25 @@ class TestDataQuery(unittest.TestCase):
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
     @patch('file_setup.init_processing.sqlite3')
+    def test_delete_row_by_id(self, mock_sqlite3, mock_close_db, mock_open_db):
+        # Arrange
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_sqlite3.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_open_db.return_value = (mock_conn, mock_cursor)
+        dummy_id = 42
+
+        # Act
+        data_query.delete_row_by_id('dummy_path', 'dummy_table', dummy_id)
+
+        # Assert
+        mock_cursor.execute.assert_called_with("DELETE FROM dummy_table WHERE id = ?", (dummy_id,))
+        mock_conn.commit.assert_called()
+    
+    @patch('file_setup.init_processing.open_database')
+    @patch('file_setup.init_processing.close_database')
+    @patch('file_setup.init_processing.sqlite3')
     def test_update_database_column(self, mock_sqlite3: MagicMock, mock_close_db: MagicMock, mock_open_db: MagicMock) -> None:
         # Arrange
         mock_conn = MagicMock()
@@ -127,7 +172,7 @@ class TestDataQuery(unittest.TestCase):
         
         data_query.update_database_cell('dummy_path', 'dummy_table', dummy_id, 'dummy_column', 'dummy_value')
         
-        mock_cursor.execute.assert_called_with("UPDATE dummy_table SET dummy_column = 'dummy_value' WHERE id = 1")
+        mock_cursor.execute.assert_called_with("UPDATE dummy_table SET dummy_column = ? WHERE id = ?", ('dummy_value', dummy_id))
     
     @patch('file_setup.init_processing.open_database')
     @patch('file_setup.init_processing.close_database')
