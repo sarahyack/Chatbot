@@ -72,23 +72,27 @@ def is_column_empty_or_null(db_path: str, table_name: str, column_name: str) -> 
     return count > 0
 
 
-def find_all_duplicates(db_path: str, table_name: str, column_name: str) -> dict[str, list[int]]:
+def find_all_duplicates(db_path: str, table_name: str, column_names: list[str]) -> dict[tuple, list[int]]:
     """
     Find all duplicates in a specific column of a table in the database.
 
     Parameters:
         - db_path (str): The path to the database file.
         - table_name (str): The name of the table.
-        - column_name (str): The name of the column to check for duplicates.
+        - column_name (list[str]): The names of the column to check for duplicates.
 
     Returns:
-        - dict[str, list[int]]: A dictionary with duplicated values as keys and lists of their corresponding row IDs as values.
+        - dict[str, list[int]]: A dictionary with tuples of duplicated values as keys and lists of their corresponding row IDs as values.
     """
     conn, cursor = open_database(db_path)
+
+    columns_str: str = ', '.join(column_names)
+
     cursor.execute(
-        f"SELECT {column_name}, COUNT(*), GROUP_CONCAT(id) FROM {table_name} GROUP BY {column_name} HAVING COUNT(*) > 1")
+        f"SELECT {columns_str}, COUNT(*), GROUP_CONCAT(id) FROM {table_name} GROUP BY {columns_str} HAVING COUNT(*) > 1")
     rows = cursor.fetchall()
-    duplicates = {row[0]: [int(row_id) for row_id in row[2].split(',')] for row in rows}
+    duplicates = {tuple(row[:-2]): [int(row_id) for row_id in row[-1].split(',')] for row in rows}
+
     close_database(conn)
     return duplicates
 
@@ -270,7 +274,7 @@ def create_dataframe(table_name: str) -> pd.DataFrame:
     Returns:
         - pd.DataFrame: The dataframe created from the specified table.
     """
-    conn, cursor = open_database(config.database_path)
+    conn, cursor = open_database(config.essay_db_path)
     cursor.execute(f"SELECT * FROM {table_name}")
     df = pd.DataFrame(cursor.fetchall(), columns=[column[0] for column in cursor.description])
     close_database(conn)

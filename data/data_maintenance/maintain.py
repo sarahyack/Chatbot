@@ -12,7 +12,7 @@ Functions include:
 """
 
 import data.data_augmentation.data_query as dq
-from file_setup.config import database_path, essay_health_path, log_path
+from file_setup.config import essay_db_path, essay_health_path, log_path, test_db_path
 from file_setup.init_processing import open_database, close_database
 
 
@@ -72,14 +72,15 @@ def resolve_duplicates(database: str, table_name: str, duplicates: dict[str, lis
     Returns:
         - log (str): A log of the actions taken.
     """
-    log = []
+    log: list[str] = []
 
-    for column, row_ids in duplicates.items():
-        row_ids_to_delete = sorted(row_ids)[1:]
+    for (column_1, column_2), row_ids in duplicates.items():
+        row_ids_to_delete: list[int] = sorted(row_ids)[1:]
 
         for row_id in row_ids_to_delete:
             dq.delete_row_by_id(database, table_name, row_id)
-            log += f"Resolved duplicate in column '{column}' with row ID {row_id}"
+            message: str = f"Resolved duplicate for '{column_1}' ({column_2}) with row ID {row_id}"
+            log.append(message)
 
     return log
 
@@ -88,13 +89,13 @@ def main():
     # Configure the table_name here
     table_name = 'essays'
 
-    contains_duplicates = False
-    contains_nulls = False
-    duplicates = []
     empty_or_null_columns = []
     actions: dict[str, str | list[str]] = {}
+    if table_name == 'essays':
+        database = essay_db_path
+    else:
+        database = test_db_path
 
-    database = database_path
     conn, cursor = open_database(database)
     database_columns: list[str] = cursor.execute(f"PRAGMA table_info({table_name})").fetchall()
 
@@ -103,17 +104,16 @@ def main():
         if dq.column_exists(database, table_name, column_name):
             if dq.is_column_empty_or_null(database, table_name, column_name):
                 empty_or_null_columns.append(column_name)
-                contains_nulls = True
                 dq.drop_database_column(database, table_name, column_name)
                 actions[
                     'Remove empty or null column: ' + column_name] = f"ALTER TABLE {table_name} DROP COLUMN {column_name}"
 
-            if dq.find_all_duplicates(database, table_name, column_name):
-                duplicates.append(column_name)
-                contains_duplicates = True
-                log = resolve_duplicates(database, table_name,
-                                         dq.find_all_duplicates(database, table_name, column_name))
-                actions['Resolve duplicates in column: ' + column_name] = log
+    duplicates = dq.find_all_duplicates(database, table_name, ['title', 'year'])
+    if duplicates:
+        log = resolve_duplicates(database, table_name, duplicates)
+        actions['Resolve duplicates'] = log
+    else:
+        actions['Resolve duplicates'] = 'No duplicates found.'
 
     generate_health_report(database, table_name, duplicates, empty_or_null_columns, actions)
     close_database(conn)

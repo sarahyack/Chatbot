@@ -26,7 +26,7 @@ from nltk.tokenize import word_tokenize
 from odf import teletype, text as odf_text
 from odf.opendocument import load
 
-from file_setup.config import database_path, dataset_dir
+from file_setup.config import essay_db_path, dataset_dir
 
 
 def create_database(db_path: str) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
@@ -227,12 +227,12 @@ def main():
 
     print("Initializing test data...")
 
-    if not os.path.exists(database_path):
+    if not os.path.exists(essay_db_path):
         print("Database directory not found. Creating new database...")
-        conn, cursor = create_database(database_path)
+        conn, cursor = create_database(essay_db_path)
     else:
         print("Database directory found. Using existing database...")
-        conn, cursor = open_database(database_path)
+        conn, cursor = open_database(essay_db_path)
 
     lemmatizer, stop_words = setup_lemmatizer()
 

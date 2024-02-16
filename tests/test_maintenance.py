@@ -1,10 +1,10 @@
 # tests/test_maintenance.py
 
 import unittest
-from unittest.mock import call, patch, MagicMock, mock_open
+from unittest.mock import call, patch, MagicMock, mock_open, ANY
 
 from data.data_maintenance import maintain
-from file_setup.config import log_path, essay_health_path
+from file_setup.config import log_path, essay_db_path
 
 
 class TestMaintenance(unittest.TestCase):
@@ -17,18 +17,18 @@ class TestMaintenance(unittest.TestCase):
         duplicates = ["column1", "column2"]
         empty_or_null_columns = ["column3"]
         actions_taken = {"Action1": "Details1", "Action2": "Details2"}
+        expected_path = log_path
 
         maintain.generate_health_report(db_path, table_name, duplicates, empty_or_null_columns, actions_taken)
 
-        # Check if the report is printed and written to a file
         mock_print.assert_called()
-        mock_file.assert_called_with(open(log_path or essay_health_path, 'w'))
+        mock_file.assert_called_with(expected_path, 'w')
 
     @patch('data.data_augmentation.data_query.delete_row_by_id')
     def test_resolve_duplicates(self, mock_delete):
         duplicates = {
-            "duplicate_title1": [3, 1, 2],
-            "duplicate_title2": [6, 4, 5]
+            ("duplicate_title1", "duplicate_year_1"): [1, 2, 3],
+            ("duplicate_title1", "duplicate_year_2"): [4, 5, 6]
         }
 
         maintain.resolve_duplicates("dummy_db", "dummy_table", duplicates)
@@ -48,20 +48,39 @@ class TestMaintenance(unittest.TestCase):
     @patch('data.data_maintenance.maintain.open_database')
     @patch('data.data_maintenance.maintain.close_database')
     @patch('data.data_maintenance.maintain.generate_health_report')
-    def test_main(self, mock_generate_report, mock_close_db, mock_open_db, mock_find_duplicates, mock_column_exists,
+    @patch('data.data_maintenance.maintain.resolve_duplicates')
+    def test_main(self, mock_resolve_duplicates, mock_generate_report, mock_close_db, mock_open_db, mock_find_duplicates, mock_column_exists,
                   mock_is_empty_or_null, mock_drop_column):
-        # Mock the return values for database interactions
-        mock_open_db.return_value = (MagicMock(), MagicMock())
+        mock_cursor = MagicMock()
+        mock_cursor.execute.return_value.fetchall.return_value = [
+            (1, 'title', 'TEXT', 0, None, 0),
+            (2, 'year', 'INTEGER', 0, None, 0),
+            # Add more columns as needed
+        ]
+        mock_conn = MagicMock()
+        mock_open_db.return_value = (mock_conn, mock_cursor)
         mock_column_exists.return_value = True
-        mock_is_empty_or_null.return_value = False
-        mock_find_duplicates.return_value = {}
+        mock_is_empty_or_null.side_effect = [False, True]
+        mock_find_duplicates.return_value = {
+            ('title', 'year'): [2, 3, 5]
+        }
+        expected_path = essay_db_path
 
         maintain.main()
 
-        # Check if the necessary functions are called
-        mock_open_db.assert_called()
-        mock_close_db.assert_called()
-        mock_generate_report.assert_called()
+        mock_open_db.assert_called_once_with(expected_path)
+        mock_close_db.assert_called_once_with(mock_conn)
+
+        mock_find_duplicates.assert_called_with(expected_path, 'essays', ['title', 'year'])
+
+        self.assertEqual(mock_is_empty_or_null.call_count, 2)
+
+        mock_drop_column.assert_called_once()
+
+        mock_resolve_duplicates.assert_called_with(expected_path, 'essays', {('title', 'year'): [2, 3, 5]})
+
+        mock_generate_report.assert_called_once_with(expected_path, 'essays', {('title', 'year'): [2, 3, 5]},
+                                                     ['year'], {'Remove empty or null column: year': 'ALTER TABLE essays DROP COLUMN year', 'Resolve duplicates': ANY})
 
 
 if __name__ == '__main__':

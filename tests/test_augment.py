@@ -34,14 +34,14 @@ class TestDataAugment(unittest.TestCase):
         main_module.main()
 
         # Assertions
-        mock_add_database_column.assert_any_call(main_module.database_path, 'essays', 'full_text')
-        mock_add_database_column.assert_any_call(main_module.database_path, 'essays', 'summary')
-        mock_add_database_column.assert_any_call(main_module.database_path, 'essays', 'keywords')
+        mock_add_database_column.assert_any_call(main_module.essay_db_path, 'essays', 'full_text')
+        mock_add_database_column.assert_any_call(main_module.essay_db_path, 'essays', 'summary')
+        mock_add_database_column.assert_any_call(main_module.essay_db_path, 'essays', 'keywords')
         mock_read_file_content.assert_called_with(main_module.dataset_dir)
         mock_summarize.assert_called_with('Test Content', 5)
         mock_extract_entities.assert_called_with('Test Content')
-        mock_update_database_cell.assert_any_call(main_module.database_path, 'essays', 1, 'summary', 'Test Summary')
-        mock_update_database_cell.assert_any_call(main_module.database_path, 'essays', 1, 'keywords',
+        mock_update_database_cell.assert_any_call(main_module.essay_db_path, 'essays', 1, 'summary', 'Test Summary')
+        mock_update_database_cell.assert_any_call(main_module.essay_db_path, 'essays', 1, 'keywords',
                                                   'Python (Programming Language)')
 
 

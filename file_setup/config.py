@@ -7,7 +7,7 @@ Variables:
     - dataset_dir: The directory where the dataset is stored.
     - root_dir: The root directory of the project.
     - data_dir: The directory where the data is stored.
-    - database_path: The path to the database file.
+    - essay_db_path: The path to the database file.
     - test_dir: The directory where the test data is stored.
     - test_db_path: The path to the test database file.
     - src_dir: The directory where the source code is stored.
@@ -20,7 +20,8 @@ dataset_dir: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\
 root_dir: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot"
 
 data_dir: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\data"
-database_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\data\\essays\\essays.db"
+essay_db_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\data\\essays\\essays.db"
+
 test_dir: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\tests"
 test_db_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\tests\\test.db"
 
