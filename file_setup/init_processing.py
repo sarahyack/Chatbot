@@ -4,7 +4,7 @@ This file contains functions for processing files.
 
 Functions include:
 
-    - create_database(db_path: str) - Creates a database connection and a cursor to the specified database path.
+    - create_database(db_path: str, table_name: str, schema: str) - Creates a database connection and a cursor to the specified database path.
     - open_database(db_path: str) - Opens a database connection and a cursor to the specified database path.
     - setup_lemmatizer() - Sets up the lemmatizer and stop words.
     - process_content(content: str, lemmatizer: Any, stop_words: set[str]) - Processes the specified content using the specified lemmatizer and stop words.
@@ -29,12 +29,14 @@ from odf.opendocument import load
 from file_setup.config import essay_db_path, dataset_dir
 
 
-def create_database(db_path: str) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
+def create_database(db_path: str, table_name: str, schema: str) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     """
     Creates a database connection and a cursor to the specified database path.
 
     Parameters:
         - db_path (str): The path to the database.
+        - table_name (str): The name of the table.
+        - schema (str): The schema of the table.
 
     Returns:
         - conn (sqlite3 Connection): The database connection.
@@ -44,14 +46,7 @@ def create_database(db_path: str) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     cursor = conn.cursor()
 
     # Create a table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS essays (
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            year INTEGER,
-            content TEXT
-        )
-    ''')
+    cursor.execute(f'CREATE TABLE IF NOT EXISTS {table_name} ({schema})')
     conn.commit()
     return conn, cursor
 
@@ -229,7 +224,11 @@ def main():
 
     if not os.path.exists(essay_db_path):
         print("Database directory not found. Creating new database...")
-        conn, cursor = create_database(essay_db_path)
+        schema = """id INTEGER PRIMARY KEY,
+                    title TEXT,
+                    year INTEGER,
+                    content TEXT"""
+        conn, cursor = create_database(essay_db_path, 'essays', schema)
     else:
         print("Database directory found. Using existing database...")
         conn, cursor = open_database(essay_db_path)

@@ -26,7 +26,7 @@ class TestPreprocessing(unittest.TestCase):
     def test_create_database(self) -> None:
         test_db_path_local: str = os.path.join(test_dir, 'test.db')
 
-        conn, cursor = create_database(test_db_path)
+        conn, cursor = create_database(test_db_path_local, 'test_table', 'id INTEGER PRIMARY KEY, title TEXT, year INTEGER, content TEXT')
 
         self.assertIsNotNone(conn)
         self.assertIsInstance(conn, sqlite3.Connection)

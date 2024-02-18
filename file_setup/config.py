@@ -25,6 +25,8 @@ essay_db_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning
 test_dir: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\tests"
 test_db_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\tests\\test.db"
 
+backup_dir: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\data\\backups"
+
 logging_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\logging"
 log_path: str = "C:\\Users\\Sarah\\Documents\\AI-Creation\\Machine Learning\\Chatbot\\logging\\log.txt"
 

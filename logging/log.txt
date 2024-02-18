@@ -1,0 +1,2 @@
+Backup directory created: C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\backups
+Backup created at C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\backups\essays.db_backup_20240217161817.db

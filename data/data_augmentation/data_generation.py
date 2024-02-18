@@ -59,9 +59,3 @@ def extract_entities(text: str) -> list[tuple[str, str]]:
 
     entities = [(entity.text, entity.label_) for entity in doc.ents]
     return entities
-
-
-def main():
-    # TODO: Add code here
-
-    pass

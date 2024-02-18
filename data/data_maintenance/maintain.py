@@ -99,6 +99,7 @@ def main():
     conn, cursor = open_database(database)
     database_columns: list[str] = cursor.execute(f"PRAGMA table_info({table_name})").fetchall()
 
+    # TODO: Investigate why this doesn't work
     for column in database_columns:
         column_name = column[1]
         if dq.column_exists(database, table_name, column_name):
