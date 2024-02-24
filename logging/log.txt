@@ -1,2 +1,6 @@
 Backup directory created: C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\backups
 Backup created at C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\backups\essays.db_backup_20240217161817.db
+Database restored from C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\data\backups\essays.db_backup_20240217161817.db to C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\data\essays\essays.db
+Database file deleted: C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\data\essays\essays.db
+Database restored from C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\data\backups\essays.db_backup_20240217161817.db to C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\data\essays\essays.db
+Backup created at C:\Users\Sarah\Documents\AI-Creation\Machine Learning\Chatbot\data\backups\essays.db_backup_20240220171652.db

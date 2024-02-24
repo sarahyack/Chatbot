@@ -79,10 +79,10 @@ def find_all_duplicates(db_path: str, table_name: str, column_names: list[str]) 
     Parameters:
         - db_path (str): The path to the database file.
         - table_name (str): The name of the table.
-        - column_name (list[str]): The names of the column to check for duplicates.
+        - column_names (list[str]): The names of the columns to check for duplicates.
 
     Returns:
-        - dict[str, list[int]]: A dictionary with tuples of duplicated values as keys and lists of their corresponding row IDs as values.
+        - dict[tuple, list[int]]: A dictionary with tuples of duplicated values as keys and lists of their corresponding row IDs as values.
     """
     conn, cursor = open_database(db_path)
 

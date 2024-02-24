@@ -5,10 +5,10 @@ This module contains functions for data maintenance.
 Functions include:
     - generate_health_report(db_path: str, table_name: str, duplicates: list, empty_or_null_columns: list, actions_taken: dict)
         Generates a health report of the database after maintenance operations.
-    - resolve_duplicates(database: str, table_name: str, duplicates: dict[str, list[int]])
+    - resolve_duplicates(database: str, table_name: str, duplicates: dict[str | tuple, list[int]])
         Resolve duplicates in a table in the database. Doesn't resolve the first row of each duplicate group.
     - main()
-        Runs the data maintenance process.
+        Runs the data maintenance process. Note: May require user input.
 """
 
 import data.data_augmentation.data_query as dq
@@ -34,13 +34,13 @@ def generate_health_report(db_path: str, table_name: str, duplicates: list, empt
     if table_name == 'essays':
         log_file: str = essay_health_path
     else:
-        log_file = log_path
+        log_file: str = log_path
 
-    report = f"Database Health Report for '{table_name}' in '{db_path}':\n\n"
+    report: str = f"Database Health Report for '{table_name}' in '{db_path}':\n\n"
 
     report += "1. Duplicates:\n"
     if duplicates:
-        report += f"   - Duplicate columns: {', '.join(duplicates)}\n"
+        report += f"   - Duplicate columns: {', '.join([' & '.join(map(str, dup)) for dup in duplicates])}\n"
     else:
         report += "   - No duplicates found.\n"
 
@@ -58,16 +58,16 @@ def generate_health_report(db_path: str, table_name: str, duplicates: list, empt
 
     print(report)
 
-    with open(log_file, 'w') as f:
+    with open(log_file, 'a') as f:
         f.write(report)
 
 
-def resolve_duplicates(database: str, table_name: str, duplicates: dict[str, list[int]]) -> list[str]:
+def resolve_duplicates(database: str, table_name: str, duplicates: dict[str | tuple, list[int]]) -> list[str]:
     """
     Resolve duplicates in a table in the database. Doesn't resolve the first row of each duplicate group.
     
     Parameters: - database (str): The path to the database file. - table_name (str): The name of the table. -
-    duplicates (dict[str, list[int]]): A dictionary with duplicated values as keys and lists of their corresponding row IDs as values.
+    duplicates (dict[str | tuple, list[int]]): A dictionary with duplicated values as keys and lists of their corresponding row IDs as values.
     
     Returns:
         - log (str): A log of the actions taken.
@@ -97,24 +97,33 @@ def main():
         database = test_db_path
 
     conn, cursor = open_database(database)
-    database_columns: list[str] = cursor.execute(f"PRAGMA table_info({table_name})").fetchall()
-
-    # TODO: Investigate why this doesn't work
-    for column in database_columns:
-        column_name = column[1]
-        if dq.column_exists(database, table_name, column_name):
-            if dq.is_column_empty_or_null(database, table_name, column_name):
-                empty_or_null_columns.append(column_name)
-                dq.drop_database_column(database, table_name, column_name)
-                actions[
-                    'Remove empty or null column: ' + column_name] = f"ALTER TABLE {table_name} DROP COLUMN {column_name}"
-
     duplicates = dq.find_all_duplicates(database, table_name, ['title', 'year'])
     if duplicates:
         log = resolve_duplicates(database, table_name, duplicates)
         actions['Resolve duplicates'] = log
     else:
         actions['Resolve duplicates'] = 'No duplicates found.'
+
+    database_columns: list[str] = cursor.execute(f"PRAGMA table_info({table_name})").fetchall()
+
+    for column in database_columns:
+        column_name = column[1]
+        if dq.column_exists(database, table_name, column_name) and dq.is_column_empty_or_null(database, table_name,
+                                                                                              column_name):
+            user_input = input(
+                f"Column '{column_name}' in table '{table_name}' in database '{database}' is empty or null. "
+                "Are you sure you want to remove it? (y/n): "
+            )
+            if user_input.lower() == 'y':
+                print(f"Removing empty or null column: {column_name}")
+                empty_or_null_columns.append(column_name)
+                dq.drop_database_column(database, table_name, column_name)
+                actions[
+                                'Remove empty or null column: ' + column_name] = f"ALTER TABLE {table_name} DROP COLUMN {column_name}"
+            else:
+                print(f"Skipping empty or null column: {column_name}")
+                actions[
+                        'Skip empty or null column: ' + column_name] = f"Skipping empty or null column: {column_name}"
 
     generate_health_report(database, table_name, duplicates, empty_or_null_columns, actions)
     close_database(conn)

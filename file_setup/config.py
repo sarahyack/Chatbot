@@ -10,6 +10,10 @@ Variables:
     - essay_db_path: The path to the database file.
     - test_dir: The directory where the test data is stored.
     - test_db_path: The path to the test database file.
+    - backup_dir: The directory where the backups are stored.
+    - logging_path: The path to the logging directory.
+    - log_path: The path to the log file.
+    - essay_health_path: The path to the essay health report.
     - src_dir: The directory where the source code is stored.
     - web_dir: The directory where the web app is stored.
     - model_dir: The directory where the model is stored.
