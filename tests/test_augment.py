@@ -6,6 +6,7 @@ from data.data_augmentation import augment as main_module
 
 
 class TestDataAugment(unittest.TestCase):
+    # TODO: Properly isolate test cases
     @patch('data.data_augmentation.augment.data_query.add_database_column')
     @patch('data.data_augmentation.augment.read_file_content')
     @patch('data.data_augmentation.augment.data_query.insert_into_database')
@@ -22,6 +23,7 @@ class TestDataAugment(unittest.TestCase):
         pass
         # Set up mock return values
         mock_read_file_content.return_value = [('Test Title', 2020, 'Test Content')]
+        mock_insert_into_database.side_effect = [(1, 'Test Content')]
         mock_summarize.return_value = 'Test Summary'
         mock_extract_entities.return_value = [('Python', 'Programming Language')]
         mock_conn = MagicMock()
