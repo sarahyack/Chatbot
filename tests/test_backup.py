@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock, mock_open, call
 
 from data.data_maintenance.backup import backup_database
+from data.data_maintenance.remove import delete_db
 from data.data_maintenance.restore import restore_database
 import file_setup.config as config
 
@@ -26,44 +27,75 @@ class TestBackup(unittest.TestCase):
         mock_local_open.assert_called_with(config.log_path, "a")
 
     @patch('builtins.input', return_value='y')
-    @patch('os.path.exists')
-    @patch('os.path.isfile')
-    @patch('shutil.copy2')
     @patch('os.remove')
-    @patch('builtins.open', new_callable=mock_open, read_data="data")
-    def test_restore_database_overwrite(self, mock_file_open: MagicMock, mock_remove: MagicMock, mock_copy: MagicMock,
-                                        mock_isfile: MagicMock, mock_exists: MagicMock, mock_input: MagicMock) -> None:
-        mock_exists.side_effect = [True, True]
-        mock_isfile.side_effect = [True, True]
-
-        backup_file_path = "path/to/your/backup/file.db"
-        db_path = config.essay_db_path
-
-        restore_database(backup_file_path, db_path, delete_existing_db=True, delete_backup=True)
-
-        mock_exists.assert_has_calls([call(backup_file_path), call(db_path)])
-        mock_isfile.assert_has_calls([call(backup_file_path), call(db_path)])
-        mock_remove.assert_has_calls(
-            [call(db_path), call(backup_file_path)])  # Check both db and backup file are removed
-        mock_copy.assert_called_with(backup_file_path, db_path)
-        mock_file_open.assert_called_with(config.log_path, "a")
-        mock_input.assert_called_once_with("Database file already exists. Do you want to overwrite it? Action cannot be undone. (y/n): ")
-
-    @patch('builtins.input', return_value='n')  # Simulate user input 'n'
-    @patch('os.path.exists', return_value=True)
     @patch('os.path.isfile', return_value=True)
+    @patch('os.path.exists', return_value=True)
     @patch('builtins.open', new_callable=mock_open, read_data="data")
-    def test_restore_database_no_overwrite(self, mock_file_open: MagicMock, mock_isfile: MagicMock,
-                                           mock_exists: MagicMock, mock_input: MagicMock) -> None:
+    def test_delete_db_accept(self, mock_file_open, mock_exists, mock_isfile, mock_remove, mock_input):
+        db_path = config.essay_db_path
+
+        delete_db(db_path)
+
+        mock_input.assert_called_once_with(
+            "Database file already exists. Do you want to overwrite it? Action cannot be undone. (y/n): ")
+        mock_remove.assert_called_once_with(db_path)
+        mock_file_open.assert_called_with(config.log_path, "a")
+
+    @patch('builtins.input', return_value='n')
+    @patch('os.remove')
+    @patch('os.path.isfile', return_value=True)
+    @patch('os.path.exists', return_value=True)
+    @patch('builtins.open', new_callable=mock_open, read_data="data")
+    def test_delete_db_decline(self, mock_file_open, mock_exists, mock_isfile, mock_remove, mock_input):
+        db_path = config.essay_db_path
+
+        delete_db(db_path)
+
+        mock_input.assert_called_once_with(
+            "Database file already exists. Do you want to overwrite it? Action cannot be undone. (y/n): ")
+        mock_remove.assert_not_called()
+        mock_file_open.assert_called_with(config.log_path, "a")
+
+    @patch('os.remove')
+    @patch('shutil.copy2')
+    @patch('os.path.isfile', return_value=True)
+    @patch('os.path.exists', return_value=True)
+    @patch('builtins.open', new_callable=mock_open, read_data="data")
+    def test_restore_database(self, mock_file_open, mock_exists, mock_isfile, mock_copy, mock_remove):
+        # Setup paths
         backup_file_path = "path/to/your/backup/file.db"
         db_path = config.essay_db_path
 
-        # Call function expecting no overwrite
-        restore_database(backup_file_path, db_path, delete_existing_db=True, delete_backup=False)
+        # Execute the restore function
+        restore_database(backup_file_path, db_path, delete_backup=True)
 
-        # Asserts that copy and remove are not called since user chose not to overwrite
+        # Assertions
+        mock_exists.assert_called_once_with(backup_file_path)
+        mock_isfile.assert_called_once_with(backup_file_path)
+        mock_copy.assert_called_once_with(backup_file_path, db_path)
+        mock_remove.assert_called_once_with(backup_file_path)
         mock_file_open.assert_called_with(config.log_path, "a")
-        mock_input.assert_called_once_with("Database file already exists. Do you want to overwrite it? Action cannot be undone. (y/n): ")
+
+    @patch('os.remove')
+    @patch('shutil.copy2')
+    @patch('os.path.isfile', return_value=True)
+    @patch('os.path.exists', return_value=True)
+    @patch('builtins.open', new_callable=mock_open, read_data="data")
+    def test_restore_database_no_backup_deletion(self, mock_file_open, mock_exists, mock_isfile, mock_copy,
+                                                 mock_remove):
+        # Setup paths
+        backup_file_path = "path/to/your/backup/file.db"
+        db_path = config.essay_db_path
+
+        # Execute the restore function with delete_backup=False
+        restore_database(backup_file_path, db_path, delete_backup=False)
+
+        # Assertions
+        mock_exists.assert_called_once_with(backup_file_path)
+        mock_isfile.assert_called_once_with(backup_file_path)
+        mock_copy.assert_called_once_with(backup_file_path, db_path)
+        mock_remove.assert_not_called()
+        mock_file_open.assert_called_with(config.log_path, "a")
 
 
 if __name__ == '__main__':
